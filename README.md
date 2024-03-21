@@ -1,5 +1,37 @@
 # TFL scrapey
 
+
+
+
+
+weirdest thing
+this url
+  - https://tfl.gov.uk/bus/stop/490012651S/st-dominics-priory
+
+is really slow to load
+
+
+yet this url
+  - https://tfl.gov.uk/bus/stop/490012651S/st-dominics-priory?lineId=24
+
+is quite fast
+
+
+AND
+
+
+that seond URL loads not only 24 busses, but also 46 busses.
+
+
+That feels like some major tech debt on TFL's api ay?
+
+
+
+
+
+
+
+
 pull info from TFL's bus arrival webpage and display on my own webpage
 - just for st-dominics at first
   - then maybe a few more stops, like the one by kings cross

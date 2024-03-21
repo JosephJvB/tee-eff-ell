@@ -1,3 +1,4 @@
+import https from 'https'
 import * as cheerio from 'cheerio'
 import { selectors } from './config'
 
@@ -10,6 +11,29 @@ export const getHtml = async (url: string) => {
   }
 
   return text
+}
+
+export const nativeFetch = (url: string): Promise<string> => {
+  let data = ''
+
+  return new Promise((resolve, reject) => {
+    const request = https.request(new URL(url), {}, (response) => {
+      response.on('data', (chunk) => {
+        data += chunk
+      })
+    })
+    request
+      .on('error', (error) => {
+        reject({
+          error,
+          data,
+        })
+      })
+      .on('error', (error) => {
+        reject(error)
+      })
+      .end()
+  })
 }
 
 export const extractJson = (html: string) => {

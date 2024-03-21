@@ -2,20 +2,78 @@
 const cheerio = require('cheerio')
 
 const stDominicsToCamden =
-  'https://tfl.gov.uk/bus/stop/490012651S/st-dominics-priory'
+  'https://tfl.gov.uk/bus/stop/490012651S/st-dominics-priory?lineId=24'
 
 exports.handler = async (event, context, callback) => {
-  // ah but it's hard to scrape without cheerio no?
-  const tflHtml = await getHtml(stDominicsToCamden)
+  const request = event.Records[0].cf.request
 
-  const jsonItems = extractJson(tflHtml)
+  if (request.method === 'OPTIONS') {
+    return callback(null, {
+      status: '200',
+      statusDescription: 'OK',
+      headers: {
+        'content-type': [
+          {
+            key: 'Content-Type',
+            value: 'text/html',
+          },
+        ],
+      },
+    })
+  }
+  if (request.method !== 'GET') {
+    callback(null, {
+      status: '400',
+      statusDescription: 'invalid method',
+      headers: {
+        'content-type': [
+          {
+            key: 'Content-Type',
+            value: 'text/html',
+          },
+        ],
+      },
+    })
+  }
 
-  jsonItems.sort((a, z) => a.timeToStation - z.timeToStation)
+  try {
+    // const tflHtml = await nativeFetch(stDominicsToCamden)
+    const tflHtml = await getHtml(stDominicsToCamden)
 
-  const htmlResponse = constructHtml(jsonItems)
+    const jsonItems = extractJson(tflHtml)
 
-  // add headers and stuff
-  return htmlResponse
+    jsonItems.sort((a, z) => a.timeToStation - z.timeToStation)
+
+    // test html response
+    // const jsonItems = Array(5)
+    //   .fill(0)
+    //   .map((_, i) => ({
+    //     timeToStation: i * 60 + 5,
+    //     lineName: '24',
+    //     destinationName: 'St Dominic&#39;s Priory',
+    //   }))
+
+    const htmlResponse = constructHtml(jsonItems)
+
+    const response = {
+      status: '200',
+      statusDescription: 'OK',
+      headers: {
+        'content-type': [
+          {
+            key: 'Content-Type',
+            value: 'text/html',
+          },
+        ],
+      },
+      body: htmlResponse,
+    }
+
+    callback(null, response)
+  } catch (error) {
+    console.error('failed', { error })
+    callback(error)
+  }
 }
 
 /**
@@ -23,12 +81,13 @@ exports.handler = async (event, context, callback) => {
  * @returns {string}
  */
 function jsonToListItem(item) {
-  const arrivalMins = (item.timeToStation / 60).toFixed(2)
+  const mins = Math.floor(item.timeToStation / 60)
+  const secs = item.timeToStation - mins * 60
   return [
     '<li>',
     `<strong style="color:red;">${item.lineName}</strong>`,
     ` ${item.destinationName} `,
-    `<strong>${arrivalMins}mins</strong>`,
+    `<strong>${mins}mins ${secs}secs</strong>`,
     '</li>',
   ].join('')
 }

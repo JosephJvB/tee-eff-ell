@@ -8,7 +8,9 @@ describe('scrape', () => {
     it('can load st dominics 24 bus to camden html', async () => {
       const input = urls.stDominicsStop.toCamden[24]
 
+      // console.time('getHtml')
       const html = await getHtml(input)
+      // console.timeEnd('getHtml') // 500ms
 
       expect(html).toBeDefined()
       expect(html.length).toBeGreaterThan(100)
